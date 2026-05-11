@@ -1,0 +1,16 @@
+{
+  "name": "DMAT - Digital Marketing Automation Tool",
+  "short_name": "DMAT",
+  "description": "Digital marketing automation platform for landing pages, leads, SEO analytics, and social publishing.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/innovate-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
