@@ -49,3 +49,13 @@ temp/
 # MinIO storage and binaries
 bin/
 minio-storage/
+minio-data/
+minio.exe
+
+# Local uploads and OAuth/runtime state
+uploads/
+backend/uploads/
+backend/youtube_tokens.json
+
+# Local helper output
+frontend/frontend-dev.*.log
