@@ -34,22 +34,40 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 // ✅ CORS with credentials
-const allowedOrigins = (
-  process.env.CORS_ORIGIN || "http://localhost:5173"
-).split(",");
+app.set("trust proxy", 1);
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  }),
-);
+const normalizeOrigin = (origin) => origin?.trim().replace(/\/+$/, "");
+
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.CORS_ORIGIN,
+  "https://dmatphase.netlify.app",
+  "https://dmatphase4.netlify.app",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+]
+  .filter(Boolean)
+  .flatMap((origin) => origin.split(","))
+  .map(normalizeOrigin)
+  .filter(Boolean)
+  .filter((origin, index, origins) => origins.indexOf(origin) === index);
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(normalizeOrigin(origin))) {
+      return callback(null, true);
+    }
+
+    console.warn("Blocked CORS request:", { origin, allowedOrigins });
+    return callback(new Error(`Origin ${origin} is not allowed by CORS`));
+  },
+  credentials: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -62,9 +80,9 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
   }),
 );
@@ -131,7 +149,8 @@ app.use((err, req, res, next) => {
 
 // 🚀 START SERVER
 app.listen(PORT, async () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`Server running on ${PORT}`);
+  console.log("Allowed CORS origins:", allowedOrigins);
 
   try {
     await initializeStorage();

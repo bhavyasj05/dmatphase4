@@ -9,6 +9,7 @@ import {
   getTemplates,
   uploadImage,
   deleteImage,
+  API_BASE_URL,
 } from '../services/api';
 import './LandingPageFormPage.css';
 
@@ -238,8 +239,7 @@ function LandingPageFormPage() {
       const response = await publishLandingPage(id);
 
       // Generate public URL
-      const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
-      const url = response.data?.public_url || `${backendUrl}/public/${formData.slug}`;
+      const url = response.data?.public_url || `${API_BASE_URL}/public/${formData.slug}`;
       setPublicUrl(url);
       setShowPublishSuccess(true);
     } catch (err) {
@@ -288,9 +288,8 @@ function LandingPageFormPage() {
   const handlePreview = () => {
     // Open preview directly from backend to ensure scripts execute properly
     const token = localStorage.getItem('token');
-    const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
     // Open with auth token in URL (backend will need to accept this)
-    window.open(`${backendUrl}/api/admin/landing-pages/${id}/preview?token=${token}`, '_blank');
+    window.open(`${API_BASE_URL}/api/admin/landing-pages/${id}/preview?token=${token}`, '_blank');
   };
 
   if (loading) {

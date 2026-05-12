@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getLandingPages, deleteLandingPage } from '../services/api';
+import { API_BASE_URL, getLandingPages, deleteLandingPage } from '../services/api';
 import './LandingPagesPage.css';
 
 function LandingPagesPage() {
@@ -52,8 +52,7 @@ function LandingPagesPage() {
   const handlePreview = (id) => {
     // Open preview directly from backend to ensure scripts execute properly
     const token = localStorage.getItem('token');
-    const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
-    window.open(`${backendUrl}/api/admin/landing-pages/${id}/preview?token=${token}`, '_blank');
+    window.open(`${API_BASE_URL}/api/admin/landing-pages/${id}/preview?token=${token}`, '_blank');
   };
 
   const filteredPages = pages.filter(page => {

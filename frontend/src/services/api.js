@@ -1,7 +1,7 @@
 // API service for backend communication
+import { API_BASE_URL, getNetworkErrorMessage } from '../config/api';
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+export { API_BASE_URL };
 
 // Helper function to get auth token from localStorage
 const getAuthToken = () => {
@@ -38,12 +38,22 @@ const fetchWithAuth = async (url, options = {}) => {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${url}`, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      credentials: "include",
+      ...options,
+      headers,
+    });
 
-  return handleResponse(response);
+    return handleResponse(response);
+  } catch (error) {
+    console.error("API request failed:", {
+      url: `${API_BASE_URL}${url}`,
+      message: error.message,
+      error,
+    });
+    throw new Error(getNetworkErrorMessage(error));
+  }
 };
 
 /**
@@ -51,14 +61,16 @@ const fetchWithAuth = async (url, options = {}) => {
  */
 export const getHealth = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/health`);
+    const response = await fetch(`${API_BASE_URL}/api/health`, {
+      credentials: "include",
+    });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     return await response.json();
   } catch (error) {
     console.error("Error fetching health status:", error);
-    throw error;
+    throw new Error(getNetworkErrorMessage(error));
   }
 };
 
@@ -67,14 +79,16 @@ export const getHealth = async () => {
  */
 export const getDbStatus = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/db-check`);
+    const response = await fetch(`${API_BASE_URL}/api/db-check`, {
+      credentials: "include",
+    });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     return await response.json();
   } catch (error) {
     console.error("Error fetching database status:", error);
-    throw error;
+    throw new Error(getNetworkErrorMessage(error));
   }
 };
 
@@ -89,13 +103,24 @@ export const getDbStatus = async () => {
  * @returns {Promise<Object>} { token, user }
  */
 export const login = async (email, password) => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
-  });
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+  } catch (error) {
+    console.error("Login request failed:", {
+      apiBaseUrl: API_BASE_URL,
+      message: error.message,
+      error,
+    });
+    throw new Error(getNetworkErrorMessage(error));
+  }
 
   const data = await handleResponse(response);
 
@@ -272,6 +297,7 @@ export const exportLeads = async (params = {}) => {
   const url = `${API_BASE_URL}/api/admin/leads/export${queryString ? `?${queryString}` : ""}`;
 
   const response = await fetch(url, {
+    credentials: "include",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -334,6 +360,7 @@ export const deleteLeadNote = async (noteId) => {
 export const submitLead = async (data) => {
   const response = await fetch(`${API_BASE_URL}/api/public/leads`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -441,6 +468,7 @@ export const uploadImage = async (imageFile) => {
 
   const response = await fetch(`${API_BASE_URL}/api/admin/upload/image`, {
     method: "POST",
+    credentials: "include",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -581,6 +609,7 @@ export const exportKeywords = async (params = {}) => {
   const url = `${API_BASE_URL}/api/admin/seo/keywords/export${queryString ? `?${queryString}` : ""}`;
 
   const response = await fetch(url, {
+    credentials: "include",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -745,6 +774,7 @@ export const publishLinkedInPost = async (data) => {
   // Don't set Content-Type - let browser handle multipart/form-data
   const response = await fetch(`${API_BASE_URL}/api/admin/linkedin/posts`, {
     method: "POST",
+    credentials: "include",
     headers,
     body: data,
   });
@@ -795,6 +825,7 @@ export const publishFacebookPost = async (data) => {
   // Don't set Content-Type - let browser handle multipart/form-data
   const response = await fetch(`${API_BASE_URL}/api/admin/facebook/posts`, {
     method: "POST",
+    credentials: "include",
     headers,
     body: data,
   });
@@ -892,6 +923,7 @@ export const postToAllSocialPlatforms = async (payload) => {
     `${API_BASE_URL}/api/admin/social-hub/post-all`,
     {
       method: "POST",
+      credentials: "include",
       headers,
       body: payload,
     },
@@ -907,6 +939,7 @@ export const createScheduledPost = async (formData) => {
   const token = getAuthToken();
   const response = await fetch(`${API_BASE_URL}/api/admin/scheduled-posts`, {
     method: "POST",
+    credentials: "include",
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
   });
